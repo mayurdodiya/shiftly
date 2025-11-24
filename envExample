@@ -1,0 +1,32 @@
+# NODE_ENV=production
+NODE_ENV=development
+MONGODB_URL=
+PORT=3002
+APP_BACKEND_URL=
+WEB_APP_URL=
+
+#jwt credentials
+JWT_SECRET=
+JWT_EXPIRES_IN=1d
+
+#lemon integration
+LEMON_TESTMODE_URL=https://api.lemonsqueezy.com
+LEMON_LIVE_URL=https://api.lemonsqueezy.com
+WEBHOOK_SIGNIN_SECRET=
+LEMON_API_KEY=
+STORE_ID=
+PRODUCT_ID=
+VARIANT_ID=
+
+#admin credentials
+ADMIN_NAME=Admin
+ADMIN_PHONE=1234567890
+ADMIN_EMAIL=admin@example.com
+ADMIN_PASSWORD=222222
+
+#sendgrid credentials
+MAIL_HOST=
+MAIL_PORT=
+MAIL_USER=
+MAIL_PASS=
+MAIL_FROM_NAME=Rejoice Fx
