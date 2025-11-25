@@ -37,7 +37,7 @@ const register = {
     name: Joi.string().trim().required(),
     role: Joi.string().trim().required().valid(ROLE.EMPLOYEE, ROLE.HOSPITAL),
     email: Joi.string().trim().email().required(),
-    countryCode: Joi.string().trim().required(),
+    countryCode: Joi.string().trim(),
     phone: Joi.string()
       .trim()
       .pattern(/^[6-9]\d{9}$/)
@@ -46,18 +46,18 @@ const register = {
         "string.empty": "Phone number is required",
         "string.pattern.base": "Phone number must be a valid 10-digit Indian number starting with 6-9",
       }),
-    password: Joi.string()
-      .trim()
-      .min(8)
-      .pattern(new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$"))
-      .required()
-      .messages({
-        "string.empty": "Password is required",
-        "string.min": "Password must be at least 8 characters long",
-        "string.pattern.base":
-          "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character e.g Test@123",
-      }),
-    confirmPassword: Joi.string().trim().required().valid(Joi.ref("password")),
+    // password: Joi.string()
+    //   .trim()
+    //   .min(8)
+    //   .pattern(new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$"))
+    //   .required()
+    //   .messages({
+    //     "string.empty": "Password is required",
+    //     "string.min": "Password must be at least 8 characters long",
+    //     "string.pattern.base":
+    //       "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character e.g Test@123",
+    //   }),
+    // confirmPassword: Joi.string().trim().required().valid(Joi.ref("password")),
     profession: Joi.when("role", {
       is: ROLE.EMPLOYEE,
       then: Joi.string().trim().required(),
@@ -68,7 +68,8 @@ const register = {
       then: Joi.array().items(Joi.string().trim().required()).min(1).required(),
       otherwise: Joi.array().items(Joi.string().trim()).optional(),
     }),
-    resumeUrl: Joi.string().trim(),
+    // resumeUrl: Joi.string().trim(),
+    resumeUrl: Joi.string().optional().allow(null, ""),
     facility: Joi.string().trim(),
     city: Joi.string().trim(),
     state: Joi.string().trim(),

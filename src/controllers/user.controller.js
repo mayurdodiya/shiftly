@@ -9,17 +9,23 @@ const { ROLE } = require("../utils/constant");
 module.exports = {
   register: async (req, res) => {
     try {
-      const reqBody = req.body;
+      let reqBody = req.body;
       const otpVarified = await OtpModel.findOne({ phone: reqBody.phone, isVerify: true });
       if (!otpVarified) return apiResponse.BAD_REQUEST({ res, message: message.otp_verify_pending });
 
       const phoneExist = await UserModel.findOne({ phone: reqBody.phone, isActive: true, deletedAt: null });
       if (phoneExist) return apiResponse.DUPLICATE_VALUE({ res, message: message.phone_already_taken, });
 
+      // If file uploaded, store URL from S3
+      if (req.file && req.file.location) {
+        reqBody.resumeUrl = req.file.location;
+      }
+
       const data = await UserModel.create({ ...reqBody });
       return apiResponse.OK({ res, message: message.user_add_success, data });
     } catch (err) {
-      logger.error("error generating", err);
+      console.log(err, '--------------------vvvvvv')
+      // logger.error("error generating", err);
       return apiResponse.CATCH_ERROR({ res, message: message.something_went_wrong });
     }
   },
@@ -54,8 +60,8 @@ module.exports = {
       //   return apiResponse.NOT_FOUND({ res, message: message.phone_not_found });
       // }
 
-      // const otp = Math.floor(100000 + Math.random() * 900000);
-      const otp = "000000";
+      // const otp = Math.floor(1000 + Math.random() * 9000);
+      const otp = "0000";
       // send otp with the tool pending******
 
       await Promise.all([
