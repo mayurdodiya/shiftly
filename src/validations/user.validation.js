@@ -32,7 +32,7 @@ const bankDetailValidation = Joi.object({
     }),
 });
 
-const registerUser = {
+const register = {
   body: Joi.object().keys({
     name: Joi.string().trim().required(),
     role: Joi.string().trim().required().valid(ROLE.EMPLOYEE, ROLE.HOSPITAL),
@@ -69,6 +69,10 @@ const registerUser = {
       otherwise: Joi.array().items(Joi.string().trim()).optional(),
     }),
     resumeUrl: Joi.string().trim(),
+    facility: Joi.string().trim(),
+    city: Joi.string().trim(),
+    state: Joi.string().trim(),
+    address: Joi.string().trim(),
     experience: Joi.number(),
     bankDetail: bankDetailValidation.required(),
   }),
@@ -148,7 +152,7 @@ const changePassword = {
 };
 
 module.exports = {
-  registerUser,
+  register,
   loginUser,
   addUser,
   editUser,

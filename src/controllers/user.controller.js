@@ -7,91 +7,28 @@ const sendEmail = require("../services/sendgrid");
 const { ROLE } = require("../utils/constant");
 
 module.exports = {
-  // registerUser: async (req, res) => {
-  //   try {
-  //     console.log('--------------------------1')
-  //     const reqBody = req.body;
-  //     console.log('--------------------------2')
-  //     const otpVarified = await OtpModel.findOne({ phone: reqBody.phone, isVerify: true });
-  //     console.log('--------------------------3')
-  //     if (!otpVarified) return apiResponse.BAD_REQUEST({ res, message: message.otp_verify_pending });
-  //     console.log('--------------------------4')
-
-  //     const phoneExist = await UserModel.findOne({ phone: reqBody.phone, isActive: true, deletedAt: null });
-  //     console.log('--------------------------5')
-  //     if (phoneExist) return apiResponse.DUPLICATE_VALUE({ res, message: message.phone_already_taken, });
-  //     console.log('--------------------------6')
-
-  //     const data = await UserModel.create({ ...reqBody });
-  //     console.log('--------------------------7')
-  //     return apiResponse.OK({ res, message: message.otp_sent_phone });
-  //     return apiResponse.OK({ res, message: message.phone_already_taken, });
-  //     return res.status(200).json({
-  //       success: true,
-  //       message: message.user_add_success,
-  //       data,
-  //     });
-  //     return apiResponse.OK({ res, message: message.user_add_success, data });
-  //     console.log('--------------------------8')
-  //   } catch (err) {
-  //     logger.error("error generating", err);
-  //     return apiResponse.CATCH_ERROR({ res, message: message.something_went_wrong });
-  //   }
-  // },
-
-  registerUser: async (req, res) => {
+  register: async (req, res) => {
     try {
-      console.log('--------------------------1');
       const reqBody = req.body;
-      console.log('--------------------------2');
-
       const otpVarified = await OtpModel.findOne({ phone: reqBody.phone, isVerify: true });
-      console.log('--------------------------3');
-      if (!otpVarified) {
-        return apiResponse.BAD_REQUEST({ res, message: message.otp_verify_pending });
-      }
+      if (!otpVarified) return apiResponse.BAD_REQUEST({ res, message: message.otp_verify_pending });
 
-      console.log('--------------------------4');
       const phoneExist = await UserModel.findOne({ phone: reqBody.phone, isActive: true, deletedAt: null });
-      console.log('--------------------------5');
-      if (phoneExist) {
-        return apiResponse.DUPLICATE_VALUE({ res, message: message.phone_already_taken });
-      }
+      if (phoneExist) return apiResponse.DUPLICATE_VALUE({ res, message: message.phone_already_taken, });
 
-      console.log('--------------------------6');
-      const data = await UserModel.create(reqBody);
-      // console.log(data, '--------------------------7');
-
-      // ✅ Send response and END request properly
-      // return apiResponse.OK({ res, message: message.user_add_success, /* data */ });
-      res.statusCode = 200;
-      res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-      res.write('OK');
-      res.end();
-      return
-      // return res.status(200).json({ success: true, message: message.user_add_success, data });
-
+      const data = await UserModel.create({ ...reqBody });
+      return apiResponse.OK({ res, message: message.user_add_success, data });
     } catch (err) {
-      console.error("Error generating:", err);
+      logger.error("error generating", err);
       return apiResponse.CATCH_ERROR({ res, message: message.something_went_wrong });
     }
-    // try {
-    //   // raw send (lowest-level)
-    //   console.log('--------------------------7 - after raw send');
-    // } catch (sendErr) {
-    //   console.error('Error sending raw response:', sendErr);
-    // }
-    // console.log('res.headersSent =', res.headersSent, 'res.finished =', res.finished);
-    // return;
   },
-
 
   loginUser: async (req, res) => {
     try {
-      console.log('------------------1122')
       const reqBody = req.body;
       let user = await UserModel.findOne({ phone: reqBody.phone, isActive: true, deletedAt: null }).select("-reset_link_expiry -deletedAt -updatedAt");
-      
+
       if (!user) return apiResponse.NOT_FOUND({ res, message: message.user_not_found, });
 
       const pwdMatch = await comparePassword({ password: reqBody.password, hash: user.password });
@@ -102,7 +39,6 @@ module.exports = {
       delete userObj.password;
 
       userObj.token = token;
-      console.log('------------------2')
       return apiResponse.OK({ res, message: message.login_success, data: userObj });
     } catch (err) {
       logger.error("error generating", err);
@@ -118,11 +54,12 @@ module.exports = {
       //   return apiResponse.NOT_FOUND({ res, message: message.phone_not_found });
       // }
 
-      const otp = Math.floor(100000 + Math.random() * 900000);
+      // const otp = Math.floor(100000 + Math.random() * 900000);
+      const otp = "000000";
       // send otp with the tool pending******
 
       await Promise.all([
-        OtpModel.findOneAndUpdate({ phone }, { otp: "000000", expiryTime: new Date(Date.now() + 1 * 60 * 1000) }, { upsert: true, new: true }),
+        OtpModel.findOneAndUpdate({ phone }, { otp: otp, expiryTime: new Date(Date.now() + 1 * 60 * 1000) }, { upsert: true, new: true }),
         // send otp in phone number
         // sendEmail({
         //   to: email,
@@ -149,7 +86,15 @@ module.exports = {
       if (otpData.otp !== otp) return apiResponse.BAD_REQUEST({ res, message: message.invalid_otp });
 
       await OtpModel.findOneAndUpdate({ _id: otpData._id }, { $set: { expiryTime: new Date(), isVerify: true } }, { upsert: true }, { new: true });
-      return apiResponse.OK({ res, message: message.otp_verified });
+      let user = {};
+      user = await UserModel.findOne({ phone: phone }).lean()
+      if (user) {
+        user.isNewUser = false
+      } else {
+        user = { isNewUser: true }
+      }
+
+      return apiResponse.OK({ res, message: message.otp_verified, data: user });
     } catch (error) {
       logger.error("Error in verifyOtp", error);
       return apiResponse.CATCH_ERROR({ res, message: message.something_went_wrong });

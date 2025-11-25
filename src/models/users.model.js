@@ -26,7 +26,7 @@ const userSchema = mongoose.Schema(
       required: true,
       default: null,
     },
-     profession: {
+    profession: {
       type: String,
       trim: true,
       lowercase: true,
@@ -37,7 +37,7 @@ const userSchema = mongoose.Schema(
     },
     skill: {
       type: [String],
-      default: [],
+      default: undefined,
     },
     resumeUrl: {
       type: String,
@@ -57,7 +57,22 @@ const userSchema = mongoose.Schema(
     password: {
       type: String,
       trim: true,
-      required: true,
+    },
+    facility: {
+      type: String,
+      trim: true,
+    },
+    city: {
+      type: String,
+      trim: true,
+    },
+    state: {
+      type: String,
+      trim: true,
+    },
+    address: {
+      type: String,
+      trim: true,
     },
     isActive: {
       type: Boolean,

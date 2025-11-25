@@ -10,8 +10,8 @@
 
     // ------------------------------- POST routes -----------------------------------------
     // Register
-    router.post("/signup", validate(userValidation.registerUser), userController.registerUser);
-
+    router.post("/signup", validate(userValidation.register), userController.register);
+    
     // Login
     router.post("/login", validate(userValidation.loginUser), userController.loginUser);
 
