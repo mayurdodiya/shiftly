@@ -54,5 +54,7 @@
   "otp_verified":"Otp verified successfully.",
   "password_changed":"Password changed successfully.",
   "billing_created": "Billing created successfully.",
-  "number_not_found": "Number not found."
+  "number_not_found": "Number not found.",
+  "image_required": "Image is required.",
+  "success": "Success."
 }

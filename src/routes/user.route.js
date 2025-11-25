@@ -5,6 +5,7 @@ const { userValidation } = require("../validations");
 const { auth } = require("../middlewares/auth");
 const { ROLE } = require("../utils/constant");
 const { upload } = require("../../src/services/s3.upload");
+const utils = require("../utils/utils");
 const router = express.Router();
 
 
@@ -12,6 +13,9 @@ const router = express.Router();
 // Register
 router.post("/signup", validate(userValidation.register), userController.register);
 // router.post("/signup", upload.single("file"), validate(userValidation.register), userController.register);
+
+// POST METHOD 
+router.post("/addphotos", upload.single("file"), utils.uploadImage);
 
 // Login
 router.post("/login", validate(userValidation.loginUser), userController.loginUser);
@@ -47,6 +51,5 @@ router.get("/", /* validate(userValidation.changePassword), */ userController.ge
 
 // delete
 router.delete("/:id", /* validate(userValidation.changePassword), */ userController.deleteUser);
-
 
 module.exports = router;

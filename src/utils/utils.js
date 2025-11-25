@@ -1,5 +1,7 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const apiResponse = require("./api.response");
+const messages = require("../json/message.json");
 
 module.exports = {
   hashPassword: async ({ password }) => {
@@ -63,5 +65,21 @@ module.exports = {
     const date = new Date(dateInput);
     date.setHours(23, 59, 59, 999);
     return date.toISOString();
-  }
+  },
+  uploadImage: async (req, res) => {
+    try {
+      if (!req.file)
+        return apiResponse.BAD_REQUEST({
+          res,
+          message: messages.image_required,
+        });
+      return apiResponse.OK({
+        res,
+        message: messages.success,
+        data: req.file.location,
+      });
+    } catch (error) {
+      return apiResponse.CATCH_ERROR({ res, message: error.message });
+    }
+  },
 };
