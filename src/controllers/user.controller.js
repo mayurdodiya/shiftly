@@ -1,5 +1,5 @@
 const message = require("../json/message.json");
-const { UserModel, OtpModel } = require("../models");
+const { UserModel, OtpModel, SettingModel } = require("../models");
 const apiResponse = require("../utils/api.response");
 const logger = require("../config/logger");
 const { comparePassword, generateToken, getPagination, pagingData, hashPassword } = require("../utils/utils");
@@ -10,22 +10,26 @@ module.exports = {
   register: async (req, res) => {
     try {
       let reqBody = req.body;
+
       const otpVarified = await OtpModel.findOne({ phone: reqBody.phone, isVerify: true });
       if (!otpVarified) return apiResponse.BAD_REQUEST({ res, message: message.otp_verify_pending });
 
       const phoneExist = await UserModel.findOne({ phone: reqBody.phone, isActive: true, deletedAt: null });
-      if (phoneExist) return apiResponse.DUPLICATE_VALUE({ res, message: message.phone_already_taken, });
+      if (phoneExist) return apiResponse.DUPLICATE_VALUE({ res, message: message.phone_already_taken });
 
       // If file uploaded, store URL from S3
       if (req.file && req.file.location) {
         reqBody.resumeUrl = req.file.location;
       }
 
-      const data = await UserModel.create({ ...reqBody });
+      let data = await UserModel.create({ ...reqBody });
+      const token = await generateToken({ userId: data._id, phone: data.phone });
+      data = data.toObject()
+      data.token = token;
+
       return apiResponse.OK({ res, message: message.user_add_success, data });
     } catch (err) {
-      console.log(err, '--------------------vvvvvv')
-      // logger.error("error generating", err);
+      console.log(err)
       return apiResponse.CATCH_ERROR({ res, message: message.something_went_wrong });
     }
   },
@@ -35,7 +39,7 @@ module.exports = {
       const reqBody = req.body;
       let user = await UserModel.findOne({ phone: reqBody.phone, isActive: true, deletedAt: null }).select("-reset_link_expiry -deletedAt -updatedAt");
 
-      if (!user) return apiResponse.NOT_FOUND({ res, message: message.user_not_found, });
+      if (!user) return apiResponse.NOT_FOUND({ res, message: message.user_not_found });
 
       const pwdMatch = await comparePassword({ password: reqBody.password, hash: user.password });
       if (!pwdMatch) return apiResponse.BAD_REQUEST({ res, message: message.invalid_credentials });
@@ -47,7 +51,7 @@ module.exports = {
       userObj.token = token;
       return apiResponse.OK({ res, message: message.login_success, data: userObj });
     } catch (err) {
-      logger.error("error generating", err);
+      console.log(err);
       return apiResponse.CATCH_ERROR({ res, message: message.something_went_wrong });
     }
   },
@@ -76,8 +80,8 @@ module.exports = {
       ]);
 
       return apiResponse.OK({ res, message: message.otp_sent_phone });
-    } catch (error) {
-      logger.error("Error in forgotPassword", error);
+    } catch (err) {
+      console.log(err);
       return apiResponse.CATCH_ERROR({ res, message: message.something_went_wrong });
     }
   },
@@ -93,16 +97,18 @@ module.exports = {
 
       await OtpModel.findOneAndUpdate({ _id: otpData._id }, { $set: { expiryTime: new Date(), isVerify: true } }, { upsert: true }, { new: true });
       let user = {};
-      user = await UserModel.findOne({ phone: phone }).lean()
+      user = await UserModel.findOne({ phone: phone }).lean();
       if (user) {
-        user.isNewUser = false
+        user.isNewUser = false;
+        const token = generateToken({ userId: user._id, phone: user.phone });
+        user.token = token;
       } else {
-        user = { isNewUser: true }
+        user = { isNewUser: true };
       }
 
       return apiResponse.OK({ res, message: message.otp_verified, data: user });
-    } catch (error) {
-      logger.error("Error in verifyOtp", error);
+    } catch (err) {
+      console.log(err);
       return apiResponse.CATCH_ERROR({ res, message: message.something_went_wrong });
     }
   },
@@ -119,8 +125,8 @@ module.exports = {
       const finalPassword = await hashPassword({ password: newPassword });
       await UserModel.findOneAndUpdate({ _id: user._id, deletedAt: null }, { $set: { password: finalPassword } }, { new: true });
       return apiResponse.OK({ res, message: message.password_changed });
-    } catch (error) {
-      logger.error("Error in changePassword", error);
+    } catch (err) {
+      console.log(err);
       return apiResponse.CATCH_ERROR({ res, message: message.something_went_wrong });
     }
   },
@@ -130,12 +136,12 @@ module.exports = {
       const reqBody = req.body;
       const phoneExist = await UserModel.findOne({ phone: reqBody.phone, deletedAt: null });
 
-      if (phoneExist) return apiResponse.DUPLICATE_VALUE({ res, message: message.phone_already_taken, });
+      if (phoneExist) return apiResponse.DUPLICATE_VALUE({ res, message: message.phone_already_taken });
 
       const data = await UserModel.create({ ...reqBody });
       return apiResponse.OK({ res, message: message.user_add_success, data });
     } catch (err) {
-      logger.error("error generating", err);
+      console.log(err);
       return apiResponse.CATCH_ERROR({ res, message: message.something_went_wrong });
     }
   },
@@ -146,7 +152,7 @@ module.exports = {
       const id = req.params.id;
       const data = await UserModel.findOne({ _id: id, deletedAt: null });
 
-      if (!data) return apiResponse.NOT_FOUND({ res, message: message.user_not_found, });
+      if (!data) return apiResponse.NOT_FOUND({ res, message: message.user_not_found });
 
       // phone not change
       if (reqBody.phone) {
@@ -156,7 +162,7 @@ module.exports = {
       await UserModel.findOneAndUpdate({ _id: data._id, isActive: true, deletedAt: null }, { $set: { ...reqBody } }, { new: true });
       return apiResponse.OK({ res, message: `User ${message.updated}` });
     } catch (err) {
-      logger.error("error generating", err);
+      console.log(err);
       return apiResponse.CATCH_ERROR({ res, message: message.something_went_wrong });
     }
   },
@@ -166,11 +172,11 @@ module.exports = {
       const id = req.params.id;
       const data = await UserModel.findByIdAndUpdate({ id, deletedAt: null }, { $set: { deletedAt: new Date() } }, { new: true });
 
-      if (!data) return apiResponse.NOT_FOUND({ res, message: message.user_not_found, });
+      if (!data) return apiResponse.NOT_FOUND({ res, message: message.user_not_found });
 
       return apiResponse.OK({ res, message: `User ${message.deleted}` });
     } catch (err) {
-      logger.error("error generating", err);
+      console.log(err);
       return apiResponse.CATCH_ERROR({ res, message: message.something_went_wrong });
     }
   },
@@ -180,22 +186,32 @@ module.exports = {
       const id = req.params.id;
       const data = await UserModel.findOne({ _id: id, deletedAt: null }).select("-password -reset_link_expiry -deletedAt -updatedAt");
 
-      if (!data) return apiResponse.NOT_FOUND({ res, message: message.user_not_found, });
+      if (!data) return apiResponse.NOT_FOUND({ res, message: message.user_not_found });
 
       const userObj = data.toObject();
       return apiResponse.OK({ res, message: `User ${message.data_get}`, data: userObj });
     } catch (err) {
-      logger.error("error generating", err);
+      console.log(err);
+      return apiResponse.CATCH_ERROR({ res, message: message.something_went_wrong });
+    }
+  },
+
+  getSetting: async (req, res) => {
+    try {
+      const data = await SettingModel.findOne({ deletedAt: null });
+      return apiResponse.OK({ res, message: `Setting ${message.data_get}`, data: data });
+    } catch (err) {
+      console.log(err);
       return apiResponse.CATCH_ERROR({ res, message: message.something_went_wrong });
     }
   },
 
   getAllUser: async (req, res) => {
     try {
-      const { search, page, limit, isActive, role } = req.query
+      const { search, page, limit, isActive, role } = req.query;
       const { skip, limit: pageLimit } = getPagination(page, limit);
 
-      let DataObj = [{ deletedAt: null, }];
+      let DataObj = [{ deletedAt: null }];
 
       if (search) {
         const regSearch = new RegExp(search, "i");
@@ -221,7 +237,7 @@ module.exports = {
       const response = pagingData({ data: data, total: data?.length, page, limit: pageLimit });
       return apiResponse.OK({ res, message: `User ${message.data_get}`, data: response });
     } catch (err) {
-      logger.error("error generating", err);
+      console.log(err);
       return apiResponse.CATCH_ERROR({ res, message: message.something_went_wrong });
     }
   },

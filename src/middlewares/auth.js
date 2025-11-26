@@ -15,7 +15,6 @@ module.exports = {
         let decoded = jwt.verify(token, process.env.JWT_SECRET);
         let user = await UserModel.findOne({ _id: decoded.userId }).lean();
         if (!user) return apiResponse.UNAUTHORIZED({ res, message: messages.invalid_token });
-
         req.user = user;
 
         if (usersAllowed.length) {

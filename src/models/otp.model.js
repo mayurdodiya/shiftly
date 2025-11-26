@@ -4,7 +4,7 @@ const otpSchema = mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: "users",
       trim: true,
     },
     phone: {
@@ -40,6 +40,5 @@ otpSchema.statics.isPhoneTaken = async function (phone, excludeUserId) {
   return !!user;
 };
 
-
-const Otp = mongoose.model("Otp", otpSchema);
+const Otp = mongoose.model("otp", otpSchema, "otp");
 module.exports = Otp;
