@@ -176,6 +176,62 @@ const updateApplicationStatus = {
   }),
 };
 
+const getAllApplications = {
+  query: Joi.object().keys({
+    applicantId: Joi.string().hex().length(24).optional(),
+    jobPostId: Joi.string().hex().length(24).optional(),
+
+    status: Joi.string()
+      .valid(
+        APPLICATION_STATUS.APPLIED,
+        APPLICATION_STATUS.REJECTED,
+        APPLICATION_STATUS.HIRED,
+        APPLICATION_STATUS.CANCELED,
+        APPLICATION_STATUS.COMPLETED,
+        APPLICATION_STATUS.VERIFIED,
+      )
+      .optional(),
+
+    search: Joi.string().allow("", null),
+
+    skill: Joi.string().allow("", null),
+    phone: Joi.string().allow("", null),
+    profession: Joi.string().allow("", null),
+
+    minExperience: Joi.number().min(0),
+    maxExperience: Joi.number().max(50),
+
+    startDate: Joi.string()
+      .pattern(/^\d{4}-\d{2}-\d{2}$/)
+      .allow(null, ""),
+
+    endDate: Joi.string()
+      .pattern(/^\d{4}-\d{2}-\d{2}$/)
+      .allow(null, ""),
+
+    isActive: Joi.boolean().optional(),
+
+    page: Joi.number().min(1).default(1),
+    limit: Joi.number().min(1).max(100).default(10),
+
+    sortField: Joi.string()
+      .valid("createdAt", "status", "applicantId", "jobPostId")
+      .default("createdAt"),
+
+    sortOrder: Joi.string().valid("asc", "desc").default("desc"),
+  }),
+};
+
+const getApplicationDetail = {
+  params: Joi.object().keys({
+    id: Joi.string().required().messages({
+      "any.required": "Application ID is required",
+      "string.empty": "Application ID cannot be empty",
+    }),
+  }),
+};
+
+
 module.exports = {
   addJobPost,
   // editJobPost,
@@ -183,4 +239,6 @@ module.exports = {
   getJobPostDetails,
   applyJob,
   updateApplicationStatus,
+  getAllApplications,
+  getApplicationDetail,
 };

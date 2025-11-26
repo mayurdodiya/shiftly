@@ -142,36 +142,267 @@ module.exports = {
 
   // Apply to job ------------------------------
   applyJob: async (req, res) => {
+    // try {
+    //   const { jobPostId } = req.body;
+    //   const { user } = req;
+
+    //   // Check job exists and active
+    //   const jobPost = await JobPostModel.findOne({ _id: jobPostId, isActive: true });
+    //   console.log(jobPost, '------------------------jobPost')
+    //   if (!jobPost) return apiResponse.NOT_FOUND({ res, message: message.job_post_not_found });
+
+    //   // Check if user already applied
+    //   const existingApplication = await JobApplicationModel.findOne({
+    //     jobPostId,
+    //     applicantId: user._id,
+    //     isActive: true,
+    //   });
+    //   if (existingApplication) return apiResponse.BAD_REQUEST({ res, message: message.already_applied_job });
+
+    //   // Create job application
+    //   const application = await JobApplicationModel.create({
+    //     jobPostId,
+    //     applicantId: user._id,
+    //   });
+
+    //   return apiResponse.OK({ res, message: message.job_applied_success, data: application });
+    // } catch (err) {
+    //   console.log("Error applying to job:", err);
+    //   return apiResponse.CATCH_ERROR({ res, message: message.something_went_wrong });
+    // }
+    try {
+      const { jobPostId } = req.body;
+      const { user } = req;
+
+      // Check job exists
+      const jobPost = await JobPostModel.findOne({ _id: jobPostId, isActive: true });
+      if (!jobPost) {
+        return apiResponse.NOT_FOUND({ res, message: message.job_post_not_found });
+      }
+
+      const newStart = new Date(jobPost.jobStartDate);
+      const newEnd = new Date(jobPost.jobEndDate);
+
+      // ❗ Check overlapping hired jobs
+      const overlappingHiredApplication = await JobApplicationModel.findOne({
+        applicantId: user._id,
+        status: "hired", // only hired jobs block new applications
+        isActive: true,
+      }).populate({
+        path: "jobPostId",
+        match: {
+          jobStartDate: { $lte: newEnd },   // existing.start <= new.end
+          jobEndDate: { $gte: newStart }    // existing.end >= new.start
+        }
+      });
+
+      if (overlappingHiredApplication && overlappingHiredApplication.jobPostId) {
+        return apiResponse.BAD_REQUEST({
+          res,
+          message: "You already have a hired job overlapping this date range. You can apply only before or after those dates."
+        });
+      }
+
+      // Check already applied for same job
+      const existingApplication = await JobApplicationModel.findOne({
+        jobPostId,
+        applicantId: user._id,
+        isActive: true
+      });
+
+      if (existingApplication) {
+        return apiResponse.BAD_REQUEST({ res, message: message.already_applied_job });
+      }
+
+      // Create new application
+      const application = await JobApplicationModel.create({ jobPostId, applicantId: user._id, });
+
+      return apiResponse.OK({ res, message: message.job_applied_success, data: application, });
+
+    } catch (err) {
+      console.log("Error applying to job:", err);
+      return apiResponse.CATCH_ERROR({ res, message: message.something_went_wrong, });
+    }
+  },
+
+  getAllApplications: async (req, res) => {
+    try {
+      const { applicantId, jobPostId, status, search,
+        minExperience,
+        maxExperience,
+        skill,
+        phone,
+        profession,
+        isActive,
+        startDate,
+        endDate,
+        page,
+        limit,
+        sortField,
+        sortOrder
+      } = req.query;
+
+      const { skip, limit: pageLimit } = getPagination(page, limit);
+
+      let filter = [];
+
+      // filter only active records by default
+      filter.push({ deletedAt: null });
+
+      // Applicant filter
+      if (applicantId) {
+        filter.push({ applicantId });
+      }
+
+      // Job Post filter
+      if (jobPostId) {
+        filter.push({ jobPostId });
+      }
+
+      // Status filter
+      if (status) {
+        filter.push({ status });
+      }
+
+      // isActive Filter
+      if (typeof isActive !== "undefined") {
+        filter.push({ isActive: isActive === "true" });
+      }
+
+      // Date range filter (application created date)
+      if (startDate) {
+        filter.push({ createdAt: { $gte: new Date(startDate) } });
+      }
+      if (endDate) {
+        filter.push({ createdAt: { $lte: new Date(endDate) } });
+      }
+
+      // Search text filter (name, phone, job title)
+      if (search) {
+        const reg = new RegExp(search, "i");
+        filter.push({
+          $or: [
+            { "applicant.name": reg },
+            { "applicant.phone": reg },
+            { "jobPost.title": reg },
+            { "jobPost.skills": { $in: [reg] } },
+          ],
+        });
+      }
+
+      // Skill filter
+      if (skill) {
+        filter.push({ "applicant.skill": { $in: [skill] } });
+      }
+
+      // Phone filter
+      if (phone) {
+        filter.push({ "applicant.phone": phone });
+      }
+
+      // Profession filter
+      if (profession) {
+        filter.push({ "applicant.profession": profession });
+      }
+
+      // Experience filter
+      if (minExperience) {
+        filter.push({ "applicant.experience": { $gte: Number(minExperience) } });
+      }
+      if (maxExperience) {
+        filter.push({ "applicant.experience": { $lte: Number(maxExperience) } });
+      }
+
+      const finalQuery = filter.length ? { $and: filter } : {};
+
+      // === Populate with applicant + jobPost ===
+      const data = await JobApplicationModel.find(finalQuery)
+        .populate("applicantId", "name phone profession skill experience resumeUrl")
+        .populate("jobPostId", "title skills salary experience location")
+        .skip(skip)
+        .limit(pageLimit)
+        .sort({ [sortField]: sortOrder === "asc" ? 1 : -1 });
+
+      const totalCount = await JobApplicationModel.countDocuments(finalQuery);
+
+      const response = pagingData({
+        data,
+        total: totalCount,
+        page,
+        limit: pageLimit,
+      });
+
+      return apiResponse.OK({
+        res,
+        message: "Job Applications fetched successfully",
+        data: response,
+      });
+    } catch (err) {
+      console.log("Error fetching applications :", err);
+      return apiResponse.CATCH_ERROR({
+        res,
+        message: "Something went wrong",
+      });
+    }
+  },
+
+  getApplicationDetail: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const data = await JobApplicationModel.findById(id)
+        .populate(
+          "applicantId",
+          "name phone profession skill experience resumeUrl"
+        )
+        .populate(
+          "jobPostId",
+          "title description skills salary experience location"
+        );
+
+      if (!data) {
+        return apiResponse.NOT_FOUND({
+          res,
+          message: "Application not found",
+        });
+      }
+
+      return apiResponse.OK({
+        res,
+        message: "Application detail fetched successfully",
+        data,
+      });
+    } catch (err) {
+      console.log("Error fetching application detail:", err);
+      return apiResponse.CATCH_ERROR({
+        res,
+        message: "Something went wrong",
+      });
+    }
+  },
+
+  addJobPostPayment: async (req, res) => {
     try {
       const { jobPostId } = req.body;
       const { user } = req;
 
       // Check job exists and active
       const jobPost = await JobPostModel.findOne({ _id: jobPostId, isActive: true });
+      console.log(jobPost, '------------------------jobPost')
       if (!jobPost) return apiResponse.NOT_FOUND({ res, message: message.job_post_not_found });
 
-      // Check if user already applied
-      const existingApplication = await JobApplicationModel.findOne({
-        jobPostId,
-        applicantId: user._id,
-        isActive: true,
-      });
-      if (existingApplication) return apiResponse.BAD_REQUEST({ res, message: message.already_applied_job });
+      await JobPostModel.findOneAndUpdate({ _id: jobPostId }, { isActive: true });
 
-      // Create job application
-      const application = await JobApplicationModel.create({
-        jobPostId,
-        applicantId: user._id,
-      });
+      // job post payment status change
+      // add payment id in job post
 
-      return apiResponse.OK({ res, message: message.job_applied_success, data: application });
+      return apiResponse.OK({ res, message: message.payment_success });
     } catch (err) {
       console.log("Error applying to job:", err);
       return apiResponse.CATCH_ERROR({ res, message: message.something_went_wrong });
     }
   },
 
-  changeApplicationStatus: async (req, res) => {
+  changeApplicationStatusByHospital: async (req, res) => {
     try {
       const { status } = req.body;
       const applicationId = req.params.applicationId;

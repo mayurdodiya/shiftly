@@ -10,7 +10,8 @@ module.exports = {
   register: async (req, res) => {
     try {
       let reqBody = req.body;
-
+      console.log(req.vody)
+      
       const otpVarified = await OtpModel.findOne({ phone: reqBody.phone, isVerify: true });
       if (!otpVarified) return apiResponse.BAD_REQUEST({ res, message: message.otp_verify_pending });
 

@@ -65,5 +65,6 @@
   "already_applied_job": "You have already applied for this job.",
   "invalid_status_change": "Status cannot be updated for a completed application.",
   "invalid_status_change_verified": "Status cannot be updated for a verified application.",
-  "job_applied_success": "Job applied successfully."
+  "job_applied_success": "Job applied successfully.",
+  "payment_success": "Payment successfully proceed."
 }

@@ -13,15 +13,18 @@ router.post("/add", auth({ usersAllowed: [ROLE.HOSPITAL] }), validate(jobPostVal
 
 // Apply to a job (Applicant only)
 router.post("/apply", auth({ usersAllowed: [ROLE.EMPLOYEE] }), validate(jobPostValidation.applyJob), postController.applyJob);
-// ------------------------------- PUT routes ------------------------------------------
-// Update a job post by ID
-// router.put("/update/:postId", auth({ usersAllowed: [ROLE.HOSPITAL] }), upload.single("file"), validate(jobPostValidation.editJobPost), postController.editJobPost);
 
+// Apply to a job (Applicant only)
+router.post("/payment", auth({ usersAllowed: [ROLE.HOSPITAL] }), /* validate(jobPostValidation.applyJob), */ postController.addJobPostPayment);
+
+
+// ------------------------------- PUT routes ------------------------------------------
 // Change job post status (open/closed/paused)
 // router.put("/status/:postId", auth({ usersAllowed: [ROLE.HOSPITAL] }), validate(jobPostValidation.editJobPost), postController.updatePostStatus);
 
 // Chnage application status (applicant only)
-router.put("/application/status/:applicationId", auth({ usersAllowed: [ROLE.EMPLOYEE] }), validate(jobPostValidation.updateApplicationStatus), postController.changeApplicationStatus);
+router.put("/application/hospital/status/:applicationId", auth({ usersAllowed: [ROLE.EMPLOYEE, ROLE.HOSPITAL] }), validate(jobPostValidation.updateApplicationStatus), postController.changeApplicationStatusByHospital);
+
 
 // ------------------------------- GET routes ------------------------------------------
 // list of jobs
@@ -29,6 +32,12 @@ router.get("/list", auth({ usersAllowed: [ROLE.HOSPITAL, ROLE.EMPLOYEE] }), vali
 
 // view job by id
 router.get("/:id", auth({ usersAllowed: [ROLE.HOSPITAL, ROLE.EMPLOYEE] }), validate(jobPostValidation.getJobPostDetails), postController.getJobPostDetail);
+
+// list of applicant
+router.get("/application/list", auth({ usersAllowed: [ROLE.HOSPITAL, ROLE.EMPLOYEE] }), validate(jobPostValidation.getAllApplications), postController.getAllApplications);
+
+// view application by id
+router.get("/application/:id", auth({ usersAllowed: [ROLE.HOSPITAL, ROLE.EMPLOYEE] }), validate(jobPostValidation.getApplicationDetail), postController.getApplicationDetail);
 
 // Get all job posts (Recruiter looking at their posts)
 // router.get("/list", auth({ usersAllowed: [ROLE.HOSPITAL] }), postController.getMyJobPosts);
