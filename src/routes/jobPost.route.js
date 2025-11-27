@@ -23,7 +23,7 @@ router.post("/payment", auth({ usersAllowed: [ROLE.HOSPITAL] }), /* validate(job
 // router.put("/status/:postId", auth({ usersAllowed: [ROLE.HOSPITAL] }), validate(jobPostValidation.editJobPost), postController.updatePostStatus);
 
 // Chnage application status (applicant only)
-router.put("/application/hospital/status/:applicationId", auth({ usersAllowed: [ROLE.EMPLOYEE, ROLE.HOSPITAL] }), validate(jobPostValidation.updateApplicationStatus), postController.changeApplicationStatusByHospital);
+router.put("/application/hospital/hire/:applicationId", auth({ usersAllowed: [ROLE.HOSPITAL] }), validate(jobPostValidation.hireApplicant), postController.hireApplicant);
 
 
 // ------------------------------- GET routes ------------------------------------------

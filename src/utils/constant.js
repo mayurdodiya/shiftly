@@ -8,6 +8,7 @@ const POST_STATUS = {
   OPEN: "open",
   CLOSED: "closed",
   PAUSED: "paused",
+  EXPIRED: "expired",
 };
 
 const JOB_POST_PAYMENT_STATUS = {

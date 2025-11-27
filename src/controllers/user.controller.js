@@ -11,7 +11,7 @@ module.exports = {
     try {
       let reqBody = req.body;
       console.log(req.vody)
-      
+
       const otpVarified = await OtpModel.findOne({ phone: reqBody.phone, isVerify: true });
       if (!otpVarified) return apiResponse.BAD_REQUEST({ res, message: message.otp_verify_pending });
 
@@ -147,20 +147,18 @@ module.exports = {
     }
   },
 
-  editUser: async (req, res) => {
+  editProfile: async (req, res) => {
     try {
       const reqBody = req.body;
-      const id = req.params.id;
-      const data = await UserModel.findOne({ _id: id, deletedAt: null });
-
-      if (!data) return apiResponse.NOT_FOUND({ res, message: message.user_not_found });
+      const id = req.user._id;
 
       // phone not change
-      if (reqBody.phone) {
-        delete reqBody.phone;
-      }
+      if (reqBody.phone) delete reqBody.phone;
 
-      await UserModel.findOneAndUpdate({ _id: data._id, isActive: true, deletedAt: null }, { $set: { ...reqBody } }, { new: true });
+      // email not change
+      if (reqBody.email) delete reqBody.email;
+
+      await UserModel.findOneAndUpdate({ _id: id, isActive: true, deletedAt: null }, { $set: { ...reqBody } }, { new: true });
       return apiResponse.OK({ res, message: `User ${message.updated}` });
     } catch (err) {
       console.log(err);
@@ -191,6 +189,16 @@ module.exports = {
 
       const userObj = data.toObject();
       return apiResponse.OK({ res, message: `User ${message.data_get}`, data: userObj });
+    } catch (err) {
+      console.log(err);
+      return apiResponse.CATCH_ERROR({ res, message: message.something_went_wrong });
+    }
+  },
+
+  getProfile: async (req, res) => {
+    try {
+      const { user } = req
+      return apiResponse.OK({ res, message: `Profile ${message.data_get}`, data: user });
     } catch (err) {
       console.log(err);
       return apiResponse.CATCH_ERROR({ res, message: message.something_went_wrong });

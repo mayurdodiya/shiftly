@@ -74,42 +74,28 @@ const register = {
   }),
 };
 
-const loginUser = {
-  body: Joi.object().keys({
-    phone: Joi.string()
-      .trim()
-      .pattern(/^[6-9]\d{9}$/)
-      .required()
-      .messages({
-        "string.empty": "Phone number is required",
-        "string.pattern.base": "Phone number must be a valid 10-digit Indian number starting with 6-9",
-      }),
-    password: Joi.string().trim().required(),
-  }),
-};
+const editProfile = {
+  body: Joi.object({
+    name: Joi.string().trim().lowercase().optional(),
+    profession: Joi.string().trim().lowercase().optional(),
+    profileImage: Joi.string().trim().optional(),
+    skill: Joi.array().items(Joi.string().lowercase()).optional(),
+    resumeUrl: Joi.string().trim().optional(),
+    experience: Joi.number().optional(),
 
-const addUser = {
-  body: Joi.object().keys({
-    name: Joi.string().trim().lowercase().required(),
-    email: Joi.string().trim().email().lowercase().required(),
-    countryCode: Joi.string().trim().required(),
-    phone: Joi.string().trim().required(),
-    metaAccountNo: Joi.string().trim().required(),
-  }),
-};
+    bankDetail: Joi.object({
+      bankName: Joi.string().lowercase().optional(),
+      branchName: Joi.string().lowercase().optional(),
+      accountNumber: Joi.string().lowercase().optional(),
+      accountHolderName: Joi.string().lowercase().optional(),
+      ifscCode: Joi.string().optional(),
+    }).optional(),
 
-const editUser = {
-  body: Joi.object()
-    .keys({
-      name: Joi.string().trim().lowercase(),
-      countryCode: Joi.string().trim(),
-      phone: Joi.string().trim(),
-      metaAccountNo: Joi.string().trim(),
-    })
-    .min(1)
-    .messages({
-      "object.min": "At least one field must be provided for update",
-    }),
+    facility: Joi.string().trim().lowercase().optional(),
+    city: Joi.string().trim().lowercase().optional(),
+    state: Joi.string().trim().lowercase().optional(),
+    address: Joi.string().trim().lowercase().optional(),
+  }).min(1),
 };
 
 const sendOtp = {
@@ -149,9 +135,7 @@ const changePassword = {
 
 module.exports = {
   register,
-  loginUser,
-  addUser,
-  editUser,
+  editProfile,
   sendOtp,
   verifyOtp,
   changePassword,

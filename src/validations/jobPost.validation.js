@@ -160,6 +160,12 @@ const applyJob = {
   }),
 };
 
+const hireApplicant = {
+  params: Joi.object().keys({
+    applicationId: objectId("Application ID").required(),
+  })
+};
+
 const updateApplicationStatus = {
   params: Joi.object().keys({
     applicationId: objectId("Application ID").required(),
@@ -240,5 +246,6 @@ module.exports = {
   applyJob,
   updateApplicationStatus,
   getAllApplications,
+  hireApplicant,
   getApplicationDetail,
 };

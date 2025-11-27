@@ -69,7 +69,7 @@ const jobPostSchema = mongoose.Schema(
     },
     status: {
       type: String,
-      enum: [POST_STATUS.OPEN, POST_STATUS.CLOSED, POST_STATUS.PAUSED],
+      enum: [POST_STATUS.OPEN, POST_STATUS.CLOSED, POST_STATUS.PAUSED, POST_STATUS.EXPIRED],
       default: POST_STATUS.OPEN,
     },
     recruiterPaymentId: {

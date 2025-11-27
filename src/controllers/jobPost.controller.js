@@ -142,34 +142,6 @@ module.exports = {
 
   // Apply to job ------------------------------
   applyJob: async (req, res) => {
-    // try {
-    //   const { jobPostId } = req.body;
-    //   const { user } = req;
-
-    //   // Check job exists and active
-    //   const jobPost = await JobPostModel.findOne({ _id: jobPostId, isActive: true });
-    //   console.log(jobPost, '------------------------jobPost')
-    //   if (!jobPost) return apiResponse.NOT_FOUND({ res, message: message.job_post_not_found });
-
-    //   // Check if user already applied
-    //   const existingApplication = await JobApplicationModel.findOne({
-    //     jobPostId,
-    //     applicantId: user._id,
-    //     isActive: true,
-    //   });
-    //   if (existingApplication) return apiResponse.BAD_REQUEST({ res, message: message.already_applied_job });
-
-    //   // Create job application
-    //   const application = await JobApplicationModel.create({
-    //     jobPostId,
-    //     applicantId: user._id,
-    //   });
-
-    //   return apiResponse.OK({ res, message: message.job_applied_success, data: application });
-    // } catch (err) {
-    //   console.log("Error applying to job:", err);
-    //   return apiResponse.CATCH_ERROR({ res, message: message.something_went_wrong });
-    // }
     try {
       const { jobPostId } = req.body;
       const { user } = req;
@@ -402,6 +374,29 @@ module.exports = {
     }
   },
 
+  hireApplicant: async (req, res) => {
+    try {
+      const status = APPLICATION_STATUS.HIRED;
+      const applicationId = req.params.applicationId;
+
+      // Check if application exists and active
+      const application = await JobApplicationModel.findOne({ _id: applicationId, isActive: true });
+      if (!application) return apiResponse.NOT_FOUND({ res, message: message.application_not_found });
+
+      // Update status
+      application.status = status;
+      await application.save();
+
+      // change jobpost status
+      await JobPostModel.findOneAndUpdate({ _id: application.jobPostId }, { status: POST_STATUS.CLOSED })
+
+      return apiResponse.OK({ res, message: message.application_status_updated, data: application });
+    } catch (err) {
+      console.log("Error updating application status:", err);
+      return apiResponse.CATCH_ERROR({ res, message: message.something_went_wrong });
+    }
+  },
+
   changeApplicationStatusByHospital: async (req, res) => {
     try {
       const { status } = req.body;
@@ -424,6 +419,9 @@ module.exports = {
       // Update status
       application.status = status;
       await application.save();
+
+      // change jobpost status
+      await JobPostModel.findOneAndUpdate({ _id: application.jobPostId }, { status: POST_STATUS.CLOSED })
 
       return apiResponse.OK({ res, message: message.application_status_updated, data: application });
     } catch (err) {
