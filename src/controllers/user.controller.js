@@ -10,13 +10,16 @@ module.exports = {
   register: async (req, res) => {
     try {
       let reqBody = req.body;
-      console.log(req.vody)
 
       const otpVarified = await OtpModel.findOne({ phone: reqBody.phone, isVerify: true });
       if (!otpVarified) return apiResponse.BAD_REQUEST({ res, message: message.otp_verify_pending });
+      await OtpModel.deleteOne({ phone: reqBody.phone, isVerify: true });
 
       const phoneExist = await UserModel.findOne({ phone: reqBody.phone, isActive: true, deletedAt: null });
       if (phoneExist) return apiResponse.DUPLICATE_VALUE({ res, message: message.phone_already_taken });
+
+      const emailExist = await UserModel.findOne({ email: reqBody.email, isActive: true, deletedAt: null });
+      if (emailExist) return apiResponse.DUPLICATE_VALUE({ res, message: message.email_already_taken });
 
       // If file uploaded, store URL from S3
       if (req.file && req.file.location) {

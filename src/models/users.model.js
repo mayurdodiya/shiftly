@@ -26,6 +26,12 @@ const userSchema = mongoose.Schema(
       required: true,
       default: null,
     },
+    email: {
+      type: String,
+      trim: true,
+      required: true,
+      default: null,
+    },
     profession: {
       type: String,
       trim: true,

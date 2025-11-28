@@ -1,5 +1,5 @@
 const Joi = require("joi");
-const { POST_STATUS, APPLICATION_STATUS } = require("../utils/constant");
+const { APPLICATION_STATUS } = require("../utils/constant");
 
 // Common ObjectId validation with label
 const objectId = (label = "id") =>
@@ -62,7 +62,8 @@ const addJobPost = {
         "string.pattern.base": "jobEndDate must be in YYYY-MM-DD format only",
       }),
 
-    isActive: Joi.boolean().default(false),
+    isActive: Joi.boolean().default(true),
+    transactionId: Joi.string().required(),
   }),
 };
 
@@ -133,7 +134,9 @@ const getAllJobPost = {
         "string.pattern.base": "endDate must be in YYYY-MM-DD format only",
       }),
 
-    status: Joi.string().valid(POST_STATUS.OPEN, POST_STATUS.CLOSED, POST_STATUS.PAUSED).allow(null, ""),
+    status: Joi.string()
+      .valid(...Object.values(APPLICATION_STATUS))
+      .allow(null, ""),
 
     page: Joi.number().min(1).default(1),
     limit: Joi.number().min(1).max(100).default(10),
@@ -141,6 +144,157 @@ const getAllJobPost = {
     sortField: Joi.string().valid("createdAt", "salary", "jobStartDate", "jobEndDate", "title").default("createdAt"),
     sortOrder: Joi.string().valid("asc", "desc").default("desc"),
     isActive: Joi.boolean().optional(),
+  }),
+};
+
+const viewAllUpcomingJobs = {
+  body: Joi.object().keys({
+    search: Joi.string().trim().lowercase().allow("", null),
+
+    salary: Joi.object({
+      min: Joi.number().min(0),
+      max: Joi.number().min(0),
+    }),
+
+    startDate: Joi.string()
+      .trim()
+      .pattern(/^\d{4}-\d{2}-\d{2}$/)
+      .allow(null, "")
+      .messages({
+        "string.pattern.base": "startDate must be in YYYY-MM-DD format only",
+      }),
+
+    endDate: Joi.string()
+      .trim()
+      .pattern(/^\d{4}-\d{2}-\d{2}$/)
+      .allow(null, "")
+      .messages({
+        "string.pattern.base": "endDate must be in YYYY-MM-DD format only",
+      }),
+
+    page: Joi.number().min(1).default(1),
+    limit: Joi.number().min(1).max(100).default(10),
+  }),
+};
+
+const viewAllOngoingJobs = {
+  body: Joi.object().keys({
+    search: Joi.string().trim().lowercase().allow("", null),
+
+    salary: Joi.object({
+      min: Joi.number().min(0),
+      max: Joi.number().min(0),
+    }),
+
+    startDate: Joi.string()
+      .trim()
+      .pattern(/^\d{4}-\d{2}-\d{2}$/)
+      .allow(null, "")
+      .messages({
+        "string.pattern.base": "startDate must be in YYYY-MM-DD format only",
+      }),
+
+    endDate: Joi.string()
+      .trim()
+      .pattern(/^\d{4}-\d{2}-\d{2}$/)
+      .allow(null, "")
+      .messages({
+        "string.pattern.base": "endDate must be in YYYY-MM-DD format only",
+      }),
+
+    page: Joi.number().min(1).default(1),
+    limit: Joi.number().min(1).max(100).default(10),
+  }),
+};
+
+const viewAllCompletedJobs = {
+  body: Joi.object().keys({
+    search: Joi.string().trim().lowercase().allow("", null),
+
+    salary: Joi.object({
+      min: Joi.number().min(0),
+      max: Joi.number().min(0),
+    }),
+
+    startDate: Joi.string()
+      .trim()
+      .pattern(/^\d{4}-\d{2}-\d{2}$/)
+      .allow(null, "")
+      .messages({
+        "string.pattern.base": "startDate must be in YYYY-MM-DD format only",
+      }),
+
+    endDate: Joi.string()
+      .trim()
+      .pattern(/^\d{4}-\d{2}-\d{2}$/)
+      .allow(null, "")
+      .messages({
+        "string.pattern.base": "endDate must be in YYYY-MM-DD format only",
+      }),
+
+    page: Joi.number().min(1).default(1),
+    limit: Joi.number().min(1).max(100).default(10),
+  }),
+};
+
+const viewAllVerifiedJobs = {
+  body: Joi.object().keys({
+    search: Joi.string().trim().lowercase().allow("", null),
+
+    salary: Joi.object({
+      min: Joi.number().min(0),
+      max: Joi.number().min(0),
+    }),
+
+    startDate: Joi.string()
+      .trim()
+      .pattern(/^\d{4}-\d{2}-\d{2}$/)
+      .allow(null, "")
+      .messages({
+        "string.pattern.base": "startDate must be in YYYY-MM-DD format only",
+      }),
+
+    endDate: Joi.string()
+      .trim()
+      .pattern(/^\d{4}-\d{2}-\d{2}$/)
+      .allow(null, "")
+      .messages({
+        "string.pattern.base": "endDate must be in YYYY-MM-DD format only",
+      }),
+
+    page: Joi.number().min(1).default(1),
+    limit: Joi.number().min(1).max(100).default(10),
+  }),
+};
+
+const viewAllExpriedJobs = {
+  body: Joi.object().keys({
+    recruiterId: objectId("recruiterId").optional(),
+    search: Joi.string().trim().lowercase().allow("", null),
+
+    salary: Joi.object({
+      min: Joi.number().min(0),
+      max: Joi.number().min(0),
+    }),
+
+    startDate: Joi.string()
+      .trim()
+      .pattern(/^\d{4}-\d{2}-\d{2}$/)
+      .allow(null, "")
+      .messages({
+        "string.pattern.base": "startDate must be in YYYY-MM-DD format only",
+      }),
+
+    endDate: Joi.string()
+      .trim()
+      .pattern(/^\d{4}-\d{2}-\d{2}$/)
+      .allow(null, "")
+      .messages({
+        "string.pattern.base": "endDate must be in YYYY-MM-DD format only",
+      }),
+
+    page: Joi.number().min(1).default(1),
+    limit: Joi.number().min(1).max(100).default(10),
   }),
 };
 
@@ -163,7 +317,25 @@ const applyJob = {
 const hireApplicant = {
   params: Joi.object().keys({
     applicationId: objectId("Application ID").required(),
-  })
+  }),
+};
+
+const startJobByEmployee = {
+  params: Joi.object().keys({
+    jobPostId: objectId("Job Post ID").required(),
+  }),
+};
+
+const completeJobByEmployee = {
+  params: Joi.object().keys({
+    jobPostId: objectId("Job Post ID").required(),
+  }),
+};
+
+const verifiedJobByHospital = {
+  params: Joi.object().keys({
+    jobPostId: objectId("Job Post ID").required(),
+  }),
 };
 
 const updateApplicationStatus = {
@@ -188,14 +360,7 @@ const getAllApplications = {
     jobPostId: Joi.string().hex().length(24).optional(),
 
     status: Joi.string()
-      .valid(
-        APPLICATION_STATUS.APPLIED,
-        APPLICATION_STATUS.REJECTED,
-        APPLICATION_STATUS.HIRED,
-        APPLICATION_STATUS.CANCELED,
-        APPLICATION_STATUS.COMPLETED,
-        APPLICATION_STATUS.VERIFIED,
-      )
+      .valid(...Object.values(APPLICATION_STATUS))
       .optional(),
 
     search: Joi.string().allow("", null),
@@ -220,10 +385,42 @@ const getAllApplications = {
     page: Joi.number().min(1).default(1),
     limit: Joi.number().min(1).max(100).default(10),
 
-    sortField: Joi.string()
-      .valid("createdAt", "status", "applicantId", "jobPostId")
-      .default("createdAt"),
+    sortField: Joi.string().valid("createdAt", "status", "applicantId", "jobPostId").default("createdAt"),
+    sortOrder: Joi.string().valid("asc", "desc").default("desc"),
+  }),
+};
 
+const getAllMyAppliedJobApplication = {
+  query: Joi.object().keys({
+    jobPostId: Joi.string().hex().length(24).optional(),
+
+    status: Joi.string()
+      .valid(...Object.values(APPLICATION_STATUS))
+      .optional(),
+
+    search: Joi.string().allow("", null),
+
+    skill: Joi.string().allow("", null),
+    phone: Joi.string().allow("", null),
+    profession: Joi.string().allow("", null),
+
+    minExperience: Joi.number().min(0),
+    maxExperience: Joi.number().max(50),
+
+    startDate: Joi.string()
+      .pattern(/^\d{4}-\d{2}-\d{2}$/)
+      .allow(null, ""),
+
+    endDate: Joi.string()
+      .pattern(/^\d{4}-\d{2}-\d{2}$/)
+      .allow(null, ""),
+
+    isActive: Joi.boolean().optional(),
+
+    page: Joi.number().min(1).default(1),
+    limit: Joi.number().min(1).max(100).default(10),
+
+    sortField: Joi.string().valid("createdAt", "status", "applicantId", "jobPostId").default("createdAt"),
     sortOrder: Joi.string().valid("asc", "desc").default("desc"),
   }),
 };
@@ -237,7 +434,6 @@ const getApplicationDetail = {
   }),
 };
 
-
 module.exports = {
   addJobPost,
   // editJobPost,
@@ -246,6 +442,15 @@ module.exports = {
   applyJob,
   updateApplicationStatus,
   getAllApplications,
+  getAllMyAppliedJobApplication,
   hireApplicant,
+  startJobByEmployee,
   getApplicationDetail,
+  viewAllUpcomingJobs,
+  viewAllOngoingJobs,
+  viewAllCompletedJobs,
+  viewAllVerifiedJobs,
+  viewAllExpriedJobs,
+  completeJobByEmployee,
+  verifiedJobByHospital,
 };

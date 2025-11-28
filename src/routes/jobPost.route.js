@@ -3,32 +3,53 @@ const router = express.Router();
 const postController = require("../controllers/jobPost.controller");
 const validate = require("../middlewares/validate");
 const { jobPostValidation } = require("../validations");
-const { upload } = require("../services/s3.upload");
 const { auth } = require("../middlewares/auth");
 const { ROLE } = require("../utils/constant");
 
+
 // ------------------------------- POST routes -----------------------------------------
-// Create a new job post (Recruiter only)
+// create a new job post (Recruiter only)
 router.post("/add", auth({ usersAllowed: [ROLE.HOSPITAL] }), validate(jobPostValidation.addJobPost), postController.addJobPost);
 
-// Apply to a job (Applicant only)
+// apply to a job (Applicant only)
 router.post("/apply", auth({ usersAllowed: [ROLE.EMPLOYEE] }), validate(jobPostValidation.applyJob), postController.applyJob);
 
-// Apply to a job (Applicant only)
+// payment by hospital for new job posting
 router.post("/payment", auth({ usersAllowed: [ROLE.HOSPITAL] }), /* validate(jobPostValidation.applyJob), */ postController.addJobPostPayment);
 
 
 // ------------------------------- PUT routes ------------------------------------------
-// Change job post status (open/closed/paused)
-// router.put("/status/:postId", auth({ usersAllowed: [ROLE.HOSPITAL] }), validate(jobPostValidation.editJobPost), postController.updatePostStatus);
-
-// Chnage application status (applicant only)
+// hire applicat status (hospital only)
 router.put("/application/hospital/hire/:applicationId", auth({ usersAllowed: [ROLE.HOSPITAL] }), validate(jobPostValidation.hireApplicant), postController.hireApplicant);
+
+// change job post status i'am arrived (start job) (only for employee)
+router.put("/start-job/:jobPostId", auth({ usersAllowed: [ROLE.EMPLOYEE] }), validate(jobPostValidation.startJobByEmployee), postController.startJobByEmployee);
+
+// change job post status i'am completed my duty (only for employee)
+router.put("/complete-job/:jobPostId", auth({ usersAllowed: [ROLE.EMPLOYEE] }), validate(jobPostValidation.completeJobByEmployee), postController.completeJobByEmployee);
+
+// change job post status as verified (only for hospital user)
+router.put("/verified-job/:jobPostId", auth({ usersAllowed: [ROLE.HOSPITAL] }), validate(jobPostValidation.verifiedJobByHospital), postController.verifiedJobByHospital);
 
 
 // ------------------------------- GET routes ------------------------------------------
-// list of jobs
+// list of all jobs
 router.get("/list", auth({ usersAllowed: [ROLE.HOSPITAL, ROLE.EMPLOYEE] }), validate(jobPostValidation.getAllJobPost), postController.getAllJobPost);
+
+// view all upcoming jobs for hospital and employee
+router.get("/upcoming-job/list", auth({ usersAllowed: [ROLE.HOSPITAL, ROLE.EMPLOYEE] }), validate(jobPostValidation.viewAllUpcomingJobs), postController.viewAllUpcomingJobs);
+
+// view all ongoing jobs for hospital and employee
+router.get("/ongoing-job/list", auth({ usersAllowed: [ROLE.HOSPITAL, ROLE.EMPLOYEE] }), validate(jobPostValidation.viewAllUpcomingJobs), postController.viewAllOngoingJobs);
+
+// view all completed jobs for hospital and employee
+router.get("/completed-job/list", auth({ usersAllowed: [ROLE.HOSPITAL, ROLE.EMPLOYEE] }), validate(jobPostValidation.viewAllCompletedJobs), postController.viewAllCompletedJobs);
+
+// view all verified jobs for hospital and employee
+router.get("/verified-job/list", auth({ usersAllowed: [ROLE.HOSPITAL, ROLE.EMPLOYEE] }), validate(jobPostValidation.viewAllVerifiedJobs), postController.viewAllVerifiedJobs);
+
+// view all expried jobs for hospital
+router.get("/expried-job/list", auth({ usersAllowed: [ROLE.HOSPITAL] }), validate(jobPostValidation.viewAllExpriedJobs), postController.viewAllExpriedJobs);
 
 // view job by id
 router.get("/:id", auth({ usersAllowed: [ROLE.HOSPITAL, ROLE.EMPLOYEE] }), validate(jobPostValidation.getJobPostDetails), postController.getJobPostDetail);
@@ -36,20 +57,15 @@ router.get("/:id", auth({ usersAllowed: [ROLE.HOSPITAL, ROLE.EMPLOYEE] }), valid
 // list of applicant
 router.get("/application/list", auth({ usersAllowed: [ROLE.HOSPITAL, ROLE.EMPLOYEE] }), validate(jobPostValidation.getAllApplications), postController.getAllApplications);
 
+// list of applicant
+router.get("/my-applied-job/list", auth({ usersAllowed: [ROLE.EMPLOYEE] }), validate(jobPostValidation.getAllMyAppliedJobApplication), postController.getAllMyAppliedJobApplication);
+
 // view application by id
 router.get("/application/:id", auth({ usersAllowed: [ROLE.HOSPITAL, ROLE.EMPLOYEE] }), validate(jobPostValidation.getApplicationDetail), postController.getApplicationDetail);
 
-// Get all job posts (Recruiter looking at their posts)
-// router.get("/list", auth({ usersAllowed: [ROLE.HOSPITAL] }), postController.getMyJobPosts);
-
-// Get a single job post
-// router.get("/details/:postId", auth(), postController.getJobPostDetails);
-
-// Public job-feed for employees (filters + pagination)
-// router.get("/feed", auth(ROLE.EMPLOYEE), postController.getJobFeed);
 
 // ------------------------------- DELETE routes ---------------------------------------
-// Delete job post (soft delete)
+// delete job post (soft delete)
 // router.delete("/remove/:postId", auth({ usersAllowed: [ROLE.HOSPITAL] }), postController.deleteJobPost);
 
 module.exports = router;

@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const { POST_STATUS, JOB_POST_PAYMENT_STATUS } = require("../utils/constant");
+const { APPLICATION_STATUS, JOB_POST_PAYMENT_STATUS } = require("../utils/constant");
 
 const jobPostSchema = mongoose.Schema(
   {
@@ -67,10 +67,16 @@ const jobPostSchema = mongoose.Schema(
       type: Number,
       required: true,
     },
+    hiredApplicantId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "users",
+      default: null,
+    },
     status: {
       type: String,
-      enum: [POST_STATUS.OPEN, POST_STATUS.CLOSED, POST_STATUS.PAUSED, POST_STATUS.EXPIRED],
-      default: POST_STATUS.OPEN,
+      // enum: [POST_STATUS.OPEN, POST_STATUS.CLOSED, POST_STATUS.PAUSED, POST_STATUS.EXPIRED],
+      enum: Object.values(APPLICATION_STATUS),
+      default: APPLICATION_STATUS.PENDING,
     },
     recruiterPaymentId: {
       type: mongoose.Schema.Types.ObjectId,

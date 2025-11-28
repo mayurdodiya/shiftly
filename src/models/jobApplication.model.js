@@ -13,11 +13,6 @@ const jobApplicationSchema = mongoose.Schema(
       ref: "users",
       required: true,
     },
-    status: {
-      type: String,
-      enum: Object.values(APPLICATION_STATUS),
-      default: APPLICATION_STATUS.APPLIED,
-    },
     isActive: {
       type: Boolean,
       default: true,

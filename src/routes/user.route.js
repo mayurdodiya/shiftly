@@ -10,13 +10,13 @@ const router = express.Router();
 
 
 // ------------------------------- POST routes -----------------------------------------
-// Send otp
+// send otp
 router.post("/sendOtp", validate(userValidation.sendOtp), userController.sendOtp);
 
 // verify otp
 router.post("/verifyOtp", validate(userValidation.verifyOtp), userController.verifyOtp);
 
-// Register
+// register
 router.post("/signup", upload.single("file"), validate(userValidation.register), userController.register);
 
 // upload single 
@@ -24,12 +24,11 @@ router.post("/upload", upload.single("file"), utils.uploadImage);
 
 
 // ------------------------------- PUT routes ------------------------------------------
-
 // edit user
 router.put("/edit-profile", auth({ usersAllowed: [ROLE.HOSPITAL, ROLE.EMPLOYEE, ROLE.ADMIN] }), validate(userValidation.editProfile), userController.editProfile);
 
-// ------------------------------- GET routes ------------------------------------------
 
+// ------------------------------- GET routes ------------------------------------------
 // get setting details
 router.get("/setting",auth({ usersAllowed: [ROLE.HOSPITAL, ROLE.ADMIN] }), userController.getSetting);
 

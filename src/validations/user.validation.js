@@ -12,10 +12,8 @@ const bankDetailValidation = Joi.object({
   }),
   accountNumber: Joi.string()
     .trim()
-    .pattern(/^[0-9]{9,18}$/)
     .required()
     .messages({
-      "string.pattern.base": "Account number must be 9–18 digits",
       "any.required": "Account number is required",
     }),
   accountHolderName: Joi.string().trim().lowercase().required().messages({
@@ -25,7 +23,6 @@ const bankDetailValidation = Joi.object({
   ifscCode: Joi.string()
     .trim()
     .uppercase()
-    .pattern(/^[A-Z]{4}0[A-Z0-9]{6}$/)
     .required()
     .messages({
       "string.pattern.base": "Invalid IFSC code format",
@@ -58,11 +55,11 @@ const register = {
       otherwise: Joi.string().trim().lowercase().optional().allow(null, ""),
     }),
 
-    skill: Joi.when("role", {
-      is: ROLE.EMPLOYEE,
-      then: Joi.array().items(Joi.string().trim().lowercase().required()).min(1).required(),
-      otherwise: Joi.array().items(Joi.string().trim().lowercase()).optional(),
-    }),
+    // skill: Joi.when("role", {
+    //   is: ROLE.EMPLOYEE,
+    //   then: Joi.array().items(Joi.string().trim().lowercase().required()).min(1).required(),
+    //   otherwise: Joi.array().items(Joi.string().trim().lowercase()).optional(),
+    // }),
 
     resumeUrl: Joi.string().optional().allow(null, ""),
     facility: Joi.string().trim().lowercase(),

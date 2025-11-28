@@ -4,12 +4,12 @@ const ROLE = {
   HOSPITAL: "hospital",
 };
 
-const POST_STATUS = {
-  OPEN: "open",
-  CLOSED: "closed",
-  PAUSED: "paused",
-  EXPIRED: "expired",
-};
+// const POST_STATUS = {
+//   OPEN: "open",
+//   CLOSED: "closed",
+//   PAUSED: "paused",
+//   EXPIRED: "expired",
+// };
 
 const JOB_POST_PAYMENT_STATUS = {
   // Recruiter → Admin (job creation)
@@ -29,17 +29,19 @@ const JOB_POST_PAYMENT_STATUS = {
 };
 
 const APPLICATION_STATUS = {
-  APPLIED: "applied",
-  REJECTED: "rejected",
+  // APPLIED: "applied",
+  PENDING: "pending",
   HIRED: "hired",
+  START_WORKING: "start",
   CANCELED: "canceled",
   COMPLETED: "completed",
   VERIFIED: "verified", // if verified by hospital then send payment by admin
+  EXPIRED: "expired"
 };
 
 module.exports = {
   ROLE,
-  POST_STATUS,
+  // POST_STATUS,
   APPLICATION_STATUS,
   JOB_POST_PAYMENT_STATUS,
 };
