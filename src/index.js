@@ -28,7 +28,7 @@ app.use(morgan.successHandler);
 app.use(morgan.errorHandler);
 
 app.get("/", (req, res) => {
-  res.send("Hello world");
+  res.send("Hello world!");
 });
 
 app.post("/test", (req, res) => {
