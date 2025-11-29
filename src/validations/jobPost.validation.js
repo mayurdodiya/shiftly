@@ -9,6 +9,9 @@ const objectId = (label = "id") =>
     "string.hex": "{#label} must contain only hexadecimal characters",
   });
 
+  const dateFormate = "/^(?:(?:31-(?:01|03|05|07|08|10|12))|(?:29|30-(?:01|03|04|05|06|07|08|09|10|11|12))|(?:29-02-(?:\d\d(?:0[48]|[2468][048]|[13579][26])|(?:0[48]|[2468][048]|[13579][26])00))|(?:0[1-9]|1\d|2[0-8]-(?:01|02|03|04|05|06|07|08|09|10|11|12)))-\d{4}$/"
+
+
 // job post ------------------------------------
 const addJobPost = {
   body: Joi.object().keys({
@@ -47,7 +50,7 @@ const addJobPost = {
     jobStartDate: Joi.string()
       .trim()
       .lowercase()
-      .pattern(/^\d{4}-\d{2}-\d{2}$/)
+      .pattern(dateFormate)
       .required()
       .messages({
         "string.pattern.base": "jobStartDate must be in YYYY-MM-DD format only",
@@ -56,7 +59,7 @@ const addJobPost = {
     jobEndDate: Joi.string()
       .trim()
       .lowercase()
-      .pattern(/^\d{4}-\d{2}-\d{2}$/)
+      .pattern(dateFormate)
       .required()
       .messages({
         "string.pattern.base": "jobEndDate must be in YYYY-MM-DD format only",
@@ -120,7 +123,7 @@ const getAllJobPost = {
 
     startDate: Joi.string()
       .trim()
-      .pattern(/^\d{4}-\d{2}-\d{2}$/)
+      .pattern(dateFormate)
       .allow(null, "")
       .messages({
         "string.pattern.base": "startDate must be in YYYY-MM-DD format only",
@@ -128,7 +131,7 @@ const getAllJobPost = {
 
     endDate: Joi.string()
       .trim()
-      .pattern(/^\d{4}-\d{2}-\d{2}$/)
+      .pattern(dateFormate)
       .allow(null, "")
       .messages({
         "string.pattern.base": "endDate must be in YYYY-MM-DD format only",
@@ -158,7 +161,7 @@ const viewAllUpcomingJobs = {
 
     startDate: Joi.string()
       .trim()
-      .pattern(/^\d{4}-\d{2}-\d{2}$/)
+      .pattern(dateFormate)
       .allow(null, "")
       .messages({
         "string.pattern.base": "startDate must be in YYYY-MM-DD format only",
@@ -166,7 +169,7 @@ const viewAllUpcomingJobs = {
 
     endDate: Joi.string()
       .trim()
-      .pattern(/^\d{4}-\d{2}-\d{2}$/)
+      .pattern(dateFormate)
       .allow(null, "")
       .messages({
         "string.pattern.base": "endDate must be in YYYY-MM-DD format only",
@@ -188,7 +191,7 @@ const viewAllOngoingJobs = {
 
     startDate: Joi.string()
       .trim()
-      .pattern(/^\d{4}-\d{2}-\d{2}$/)
+      .pattern(dateFormate)
       .allow(null, "")
       .messages({
         "string.pattern.base": "startDate must be in YYYY-MM-DD format only",
@@ -196,7 +199,7 @@ const viewAllOngoingJobs = {
 
     endDate: Joi.string()
       .trim()
-      .pattern(/^\d{4}-\d{2}-\d{2}$/)
+      .pattern(dateFormate)
       .allow(null, "")
       .messages({
         "string.pattern.base": "endDate must be in YYYY-MM-DD format only",
@@ -218,7 +221,7 @@ const viewAllCompletedJobs = {
 
     startDate: Joi.string()
       .trim()
-      .pattern(/^\d{4}-\d{2}-\d{2}$/)
+      .pattern(dateFormate)
       .allow(null, "")
       .messages({
         "string.pattern.base": "startDate must be in YYYY-MM-DD format only",
@@ -226,7 +229,7 @@ const viewAllCompletedJobs = {
 
     endDate: Joi.string()
       .trim()
-      .pattern(/^\d{4}-\d{2}-\d{2}$/)
+      .pattern(dateFormate)
       .allow(null, "")
       .messages({
         "string.pattern.base": "endDate must be in YYYY-MM-DD format only",
@@ -248,7 +251,7 @@ const viewAllVerifiedJobs = {
 
     startDate: Joi.string()
       .trim()
-      .pattern(/^\d{4}-\d{2}-\d{2}$/)
+      .pattern(dateFormate)
       .allow(null, "")
       .messages({
         "string.pattern.base": "startDate must be in YYYY-MM-DD format only",
@@ -256,7 +259,7 @@ const viewAllVerifiedJobs = {
 
     endDate: Joi.string()
       .trim()
-      .pattern(/^\d{4}-\d{2}-\d{2}$/)
+      .pattern(dateFormate)
       .allow(null, "")
       .messages({
         "string.pattern.base": "endDate must be in YYYY-MM-DD format only",
@@ -279,7 +282,7 @@ const viewAllExpriedJobs = {
 
     startDate: Joi.string()
       .trim()
-      .pattern(/^\d{4}-\d{2}-\d{2}$/)
+      .pattern(dateFormate)
       .allow(null, "")
       .messages({
         "string.pattern.base": "startDate must be in YYYY-MM-DD format only",
@@ -287,7 +290,7 @@ const viewAllExpriedJobs = {
 
     endDate: Joi.string()
       .trim()
-      .pattern(/^\d{4}-\d{2}-\d{2}$/)
+      .pattern(dateFormate)
       .allow(null, "")
       .messages({
         "string.pattern.base": "endDate must be in YYYY-MM-DD format only",
@@ -373,11 +376,11 @@ const getAllApplications = {
     maxExperience: Joi.number().max(50),
 
     startDate: Joi.string()
-      .pattern(/^\d{4}-\d{2}-\d{2}$/)
+      .pattern(dateFormate)
       .allow(null, ""),
 
     endDate: Joi.string()
-      .pattern(/^\d{4}-\d{2}-\d{2}$/)
+      .pattern(dateFormate)
       .allow(null, ""),
 
     isActive: Joi.boolean().optional(),
@@ -408,11 +411,11 @@ const getAllMyAppliedJobApplication = {
     maxExperience: Joi.number().max(50),
 
     startDate: Joi.string()
-      .pattern(/^\d{4}-\d{2}-\d{2}$/)
+      .pattern(dateFormate)
       .allow(null, ""),
 
     endDate: Joi.string()
-      .pattern(/^\d{4}-\d{2}-\d{2}$/)
+      .pattern(dateFormate)
       .allow(null, ""),
 
     isActive: Joi.boolean().optional(),
