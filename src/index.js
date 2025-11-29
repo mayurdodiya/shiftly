@@ -58,5 +58,5 @@ connectDB()
   })
   .catch((error) => console.log(error));
 
-// settingSeeder();
-// adminSeeder();
+settingSeeder();
+adminSeeder();

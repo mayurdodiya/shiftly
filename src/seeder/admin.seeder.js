@@ -1,4 +1,5 @@
 const { UserModel } = require("../models");
+const { ROLE } = require("../utils/constant");
 
 // Admin seeder.
 module.exports = adminSeeder = async () => {
@@ -12,7 +13,7 @@ module.exports = adminSeeder = async () => {
         countryCode: process.env.ADMIN_COUNTRY_CODE,
         phone: process.env.ADMIN_PHONE,
         password: process.env.ADMIN_PASSWORD,
-        role: process.env.ADMIN_ROLE,
+        role: ROLE.ADMIN,
       });
     }
 

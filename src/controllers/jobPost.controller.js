@@ -368,16 +368,77 @@ module.exports = {
       console.log(finalQuery, "-----------");
 
       // === Populate with applicant + jobPost ===
-      const data = await JobApplicationModel.find(finalQuery)
-        .populate("applicantId", "name phone profession skill experience resumeUrl")
-        .populate({
-          path: "jobPostId",
-          select: "title skills employeeSalary experience location status",
-          match: { status: APPLICATION_STATUS.PENDING },
-        })
-        .skip(skip)
-        .limit(pageLimit)
-        .sort({ [sortField]: sortOrder === "asc" ? 1 : -1 });
+      // const data = await JobApplicationModel.find(finalQuery)
+      //   .select("jobPostId applicantId isActive createdAt")
+      //   .populate("applicantId", "name phone profession skill experience resumeUrl")
+      //   .populate({
+      //     path: "jobPostId",
+      //     select: "title skills employeeSalary experience location status",
+      //     match: { status: APPLICATION_STATUS.PENDING },
+      //   })
+      //   .skip(skip)
+      //   .limit(pageLimit)
+      //   .sort({ [sortField]: sortOrder === "asc" ? 1 : -1 });
+
+      const data = await JobApplicationModel.aggregate([
+        { $match: finalQuery },
+
+        // Join jobPost
+        {
+          $lookup: {
+            from: "jobPost",
+            localField: "jobPostId",
+            foreignField: "_id",
+            as: "jobPost",
+          }
+        },
+
+        // Unwind result
+        { $unwind: "$jobPost" },
+
+        // Filter only pending jobPosts
+        {
+          $match: {
+            "jobPost.status": APPLICATION_STATUS.PENDING
+          }
+        },
+
+        // Populate applicantId
+        {
+          $lookup: {
+            from: "users",
+            localField: "applicantId",
+            foreignField: "_id",
+            as: "applicant"
+          }
+        },
+        { $unwind: "$applicant" },
+
+        // Fields selection
+        {
+          $project: {
+            jobPost: 1,
+            applicant: {
+              name: 1,
+              phone: 1,
+              profession: 1,
+              skill: 1,
+              experience: 1,
+              resumeUrl: 1,
+            },
+            isActive: 1,
+            createdAt: 1
+          }
+        },
+
+        // Sorting
+        { $sort: { [sortField]: sortOrder === "asc" ? 1 : -1 } },
+
+        // Pagination
+        { $skip: skip },
+        { $limit: pageLimit }
+      ]);
+
 
       const totalCount = await JobApplicationModel.countDocuments(finalQuery);
 
@@ -780,8 +841,7 @@ module.exports = {
       const { user } = req;
 
       // Check job exists and active
-      const jobPost = await JobPostModel.findOne({ _id: jobPostId, isActive: true });
-      console.log(jobPost, "------------------------jobPost");
+      const jobPost = await JobPostModel.findOne({ _id: jobPostId, isActive: false });
       if (!jobPost) return apiResponse.NOT_FOUND({ res, message: message.job_post_not_found });
 
       await JobPostModel.findOneAndUpdate({ _id: jobPostId }, { isActive: true });
